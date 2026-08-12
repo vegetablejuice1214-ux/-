@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>イタリア語 単語帳</title>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --accent-color: #3498db;
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --success-color: #2ecc71;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 15px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    /* URL設定エリア */
+    .config-panel {
+      width: 100%;
+      max-width: 500px;
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+
+    .config-panel label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #666;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .config-panel input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    /* ステータスバー */
+    .status-bar {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #555;
+    }
+
+    /* 3Dカードアリーナ */
+    .card-container {
+      width: 100%;
+      max-width: 500px;
+      height: 280px;
+      perspective: 1000px;
+      margin-bottom: 25px;
+      cursor: pointer;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      background: var(--card-bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 25px;
+      text-align: center;
+      border: 1px solid #eaeaea;
+    }
+
+    .card-front {
+      color: var(--primary-color);
+    }
+
+    .card-front .word {
+      font-size: 2.2rem;
+      font-weight: bold;
+      word-break: break-word;
+    }
+
+    .card-front .hint {
+      margin-top: 15px;
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      background-color: #ffffff;
+    }
+
+    .card-back .meaning-ja {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 12px;
+    }
+
+    .card-back .meaning-en {
+      font-size: 1.1rem;
+      color: #666;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+      width: 80%;
+    }
+
+    /* 正答率・習得チェックボタン */
+    .mastery-btn {
+      margin-top: 15px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--success-color);
+      background: transparent;
+      color: var(--success-color);
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mastery-btn.active {
+      background: var(--success-color);
+      color: white;
+    }
+
+    /* コントロールボタン群 */
+    .controls {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    button.btn {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--accent-color);
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      flex: 1;
+    }
+
+    button.btn:active {
+      transform: scale(0.98);
+    }
+
+    button.btn-secondary {
+      background-color: #7f8c8d;
+    }
+
+    button.btn:hover {
+      opacity: 0.9;
+    }
+
+    /* レスポンシブ調整 */
+    @media (max-width: 480px) {
+      .card-container {
+        height: 240px;
+      }
+      .card-front .word {
+        font-size: 1.8rem;
+      }
+      .card-back .meaning-ja {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🇮🇹 イタリア語暗記カード</h1>
+  </header>
+
+  <!-- スプレッドシートURL設定エリア -->
+  <div class="config-panel">
+    <label for="csv-url">Googleスプレッドシート CSV URL</label>
+    <div class="input-group">
+      <input type="text" id="csv-url" placeholder="https://docs.google.com/spreadsheets/.../pub?output=csv">
+      <button class="btn" onclick="loadCSVData()" style="flex:0 0 auto;">読み込む</button>
+    </div>
+  </div>
+
+  <!-- 進捗＆正答率表示 -->
+  <div class="status-bar">
+    <span id="card-counter">0 / 0</span>
+    <span id="accuracy-rate">習得率: 0/0 (0%)</span>
+  </div>
+
+  <!-- カード本体 -->
+  <div class="card-container" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="card-face card-front">
+        <div class="word" id="word-front">読み込み中...</div>
+        <div class="hint">タップして裏面を表示</div>
+      </div>
+      <div class="card-face card-back">
+        <div class="meaning-ja" id="meaning-ja">-</div>
+        <div class="meaning-en" id="meaning-en">-</div>
+        <button class="mastery-btn" id="mastery-btn" onclick="toggleMastery(event)">
+          ✓ 覚えた！
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ナビゲーションボタン -->
+  <div class="controls">
+    <button class="btn btn-secondary" onclick="prevCard()">前へ</button>
+    <button class="btn btn-secondary" onclick="shuffleCards()">シャッフル</button>
+    <button class="btn" onclick="nextCard()">次へ</button>
+  </div>
+
+  <script>
+    let words = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+
+    // ページ読み込み時に保存されたURLがあれば自動取得
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUrl = localStorage.getItem('italian_csv_url');
+      if (savedUrl) {
+        document.getElementById('csv-url').value = savedUrl;
+        fetchCSV(savedUrl);
+      }
+    });
+
+    // ユーザー指定のURLから読み込み
+    function loadCSVData() {
+      const url = document.getElementById('csv-url').value.trim();
+      if (!url) {
+        alert('CSVのURLを入力してください。');
+        return;
+      }
+      localStorage.setItem('italian_csv_url', url);
+      fetchCSV(url);
+    }
+
+    // CSVのフェッチ処理
+    async function fetchCSV(url) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('データの取得に失敗しました');
+        const text = await response.text();
+        parseCSV(text);
+      } catch (err) {
+        alert('CSVの読み込みエラー: ' + err.message + '\nURLが正しいか、公開設定を確認してください。');
+      }
+    }
+
+    // CSVデータのパース (簡易クォート考慮型)
+    function parseCSV(text) {
+      const lines = text.split(/\r\n|\n/);
+      words = [];
+
+      lines.forEach((line, index) => {
+        if (!line.trim()) return;
+        
+        // カンマ区切り（ダブルクォーテーション対応）
+        const row = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
+        const cleanRow = row.map(cell => cell.replace(/^"|"$/g, '').trim());
+
+        if (cleanRow.length >= 2) {
+          // 1列目: イタリア語, 2列目: 日本語, 3列目: 英語
+          words.push({
+            italian: cleanRow[0] || '',
+            japanese: cleanRow[1] || '',
+            english: cleanRow[2] || '',
+            mastered: false // 正答率計算用の状態フラグ
+          });
+        }
+      });
+
+      if (words.length > 0) {
+        currentIndex = 0;
+        updateCard();
+      } else {
+        alert('有効なデータが見つかりませんでした。');
+      }
+    }
+
+    // カードの表示更新
+    function updateCard() {
+      if (words.length === 0) return;
+
+      const current = words[currentIndex];
+      
+      // 裏面を向いていたら表に戻す
+      const cardEl = document.getElementById('card');
+      if (isFlipped) {
+        cardEl.classList.remove('flipped');
+        isFlipped = false;
+      }
+
+      // 少し遅延させて中身を書き換える（アニメーション用）
+      setTimeout(() => {
+        document.getElementById('word-front').innerText = current.italian;
+        document.getElementById('meaning-ja').innerText = current.japanese;
+        document.getElementById('meaning-en').innerText = current.english ? `(${current.english})` : '';
+        
+        // 習得ボタンの状態
+        const masteryBtn = document.getElementById('mastery-btn');
+        if (current.mastered) {
+          masteryBtn.classList.add('active');
+          masteryBtn.innerText = '✓ 習得済み';
+        } else {
+          masteryBtn.classList.remove('active');
+          masteryBtn.innerText = '✓ 覚えた！';
+        }
+
+        // ステータス更新
+        document.getElementById('card-counter').innerText = `${currentIndex + 1} / ${words.length}`;
+        updateAccuracy();
+      }, isFlipped ? 200 : 0);
+    }
+
+    // カードの反転
+    function flipCard() {
+      if (words.length === 0) return;
+      const cardEl = document.getElementById('card');
+      cardEl.classList.toggle('flipped');
+      isFlipped = !isFlipped;
+    }
+
+    // 「覚えた！」トグルボタン
+    function toggleMastery(event) {
+      event.stopPropagation(); // カード反転イベントの伝播を防止
+      if (words.length === 0) return;
+
+      words[currentIndex].mastered = !words[currentIndex].mastered;
+      updateCard();
+    }
+
+    // 正答率（習得率）の表示更新
+    function updateAccuracy() {
+      const masteredCount = words.filter(w => w.mastered).length;
+      const total = words.length;
+      const percentage = total > 0 ? Math.round((masteredCount / total) * 100) : 0;
+      
+      document.getElementById('accuracy-rate').innerText = `正答率: ${masteredCount}/${total} (${percentage}%)`;
+    }
+
+    // 次へ・前へ・シャッフル
+    function nextCard() {
+      if (words.length === 0) return;
+      currentIndex = (currentIndex + 1) % words.length;
+      updateCard();
+    }
+
+    function prevCard() {
+      if (words.length === 0) return;
+      currentIndex = (currentIndex - 1 + words.length) % words.length;
+      updateCard();
+    }
+
+    function shuffleCards() {
+      if (words.length === 0) return;
+      for (let i = words.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [words[i], words[j]] = [words[j], words[i]];
+      }
+      currentIndex = 0;
+      updateCard();
+    }
+  </script>
+</body>
+</html>
